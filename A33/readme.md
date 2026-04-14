@@ -1,4 +1,4 @@
-## Assignment 3: Concurrency and Signals
+## System Monitoring Tol
 
 ## Metadata
    * Author: Arvindh Sengu
@@ -6,17 +6,15 @@
    * Release/Version: 1.0
 
 ## Introduction/Rationale
-In this project, we were assigned to write a c program that reported the different metrics (cpu usage, mem usage, current users/sessions) of a linux system. The information is displayed through graphs in the linux terminal where the user can select which graphs they want displayed (cpu, mem, users, which sepcifically like if they want all 3 or just 2 or just 1) and how many samples of data are collected as well as how often (tdelay) using command line args.
+Wrote a c program that reported the different metrics (cpu usage, mem usage, current users/sessions) of a linux system. The information is displayed through graphs in the linux terminal where the user can select which graphs they want displayed (cpu, mem, users, which sepcifically like if they want all 3 or just 2 or just 1) and how many samples of data are collected as well as how often (tdelay) using command line args.
 
 Now, we are tasking with refactoring this project to add concurrency (multiple processes, one for mem, one for cpu, one for users) and pipes to communicate between them as well as signal handling (ignore ctrl + z, prompt user to cancel when ctrl + c).
 
 
 ## Description of how you solve/approach the problem
-(from A1 readme):
 So I first research how to actually get the data necessary to display on the graphs. The memory usage was pretty straightforward, I just used the /proc/meminfo file to subtract the total memory by the available memory to give me the memory usage in gb. For the cpu, I used to /proc/stat file, but there's not really a straightforward way of finding the cpu usage. So then by doing research I figured out that if you store the current cpu stats in the file and the stats after a few microseconds (tdelay), you can find out the cpu usage by dividing the difference of all the stats by the idle difference. For the sessions/users I imported a library that can read and format the utmp files on a linux machine as reading directly from the file gives me lots of useless info and weird symbols that are difficult to store/format. I used to a loop that goes through every user and terminal. Once I figured out how to get the info, I started working on parsing the command line arguments. So I built a loop that would loop through each argument besides the first one. It would first check if the CLA was in the first or second slot after the ./"program name" argv, and if it was in the first slot it would check if the integer was above 0 and set it equal to samples, same for the 2nd slot and if any of them were negative then it would crash the program and warn the user. Next, if any of the other --xxx flags were named then I would set a boolean value assigned to the flag equal to 1 and if the user mispelled memory or anything or entered some random flag I would crash the program and give them a warning. So after I finished parsing the flags and the collecting the data, I began working on displaying the data with escape codes and storing the lines of each graph for reference. I then made if statements and loops for each CLA flag case and then looped to update the graphs sample amount of times and tdelay wait time between each loop. I flushed the screen after each loop to make sure it worked.
 
-(for A3 updates):
-For concurrency, I reread the slides and watched a video playlist on youtube about fork and how to communicate between processes using pipes. I also read up on documentation for those libraries. I chose to use fork in my main.c file and then to make things simple, I would make functions for each child process to follow that was specific to its use (so child_cpu for cpu, etc). Then I just ran a for loop that would sleep each tdelay and collect the required info from the computer by reading the same files as I did in A1. Then I used pipes to push and pull that information in my main loop. For signal handling, I used a library that allowed me to edit what each signal did, and so for ctrl + z, I just made it do nothing and for ctrl + c I made it print out a prompt to stdout and it would scan the user's choice (y or n) and act accordingly.
+For concurrency, I watched a video playlist on youtube about fork and how to communicate between processes using pipes. I also read up on documentation for those libraries. I chose to use fork in my main.c file and then to make things simple, I would make functions for each child process to follow that was specific to its use (so child_cpu for cpu, etc). Then I just ran a for loop that would sleep each tdelay and collect the required info from the computer by reading the same files as I did in A1. Then I used pipes to push and pull that information in my main loop. For signal handling, I used a library that allowed me to edit what each signal did, and so for ctrl + z, I just made it do nothing and for ctrl + c I made it print out a prompt to stdout and it would scan the user's choice (y or n) and act accordingly.
 
 
 ## Implementation
